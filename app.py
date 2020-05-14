@@ -9,7 +9,7 @@ app = Flask(__name__)
 @app.route('/')
 def hello_world():
     fileList = getFileList()
-    return render_template("index.html")
+    return render_template("index.html", fileList=fileList)
 
 
 @app.route('/api/<phraseList>.csv')
@@ -28,7 +28,7 @@ def save():
     if request.method == "POST":
         #todo if filename contains _, if filename used
         listName = request.form.get("listName").replace(" ", "_")
-        list = request.form.get("phrases").split("\r\n")
+        list = request.form.get("phrases").strip().split("\r\n")
         print(list, listName)
         with open(f"listFiles/{listName}.csv", 'w+', newline='') as listFile:
             wr = csv.writer(listFile)
@@ -45,11 +45,12 @@ def getFileList():
     filelist = glob(f'{csvDir}/*.csv')
     namedFileList = []
     for i in filelist:
-        string = i.replace(f"{csvDir}\\", "").replace("_", " ").replace(".csv", "").title()
+        string = i.replace(f"{csvDir}\\", "").replace("_", " ").replace(".csv", "").lower().strip()
 
         namedFileList.append(string)
     print(filelist)
     print(namedFileList)
+    return namedFileList
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

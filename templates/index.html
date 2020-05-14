@@ -1,9 +1,35 @@
-    <form action="/save" method="post">
+{% extends "layout.html" %}
+
+{% block title %}
+    Hangman
+{% endblock %}
+
+{% block main %}    
+		<form action="/save" method="post">
         <div class="form-group">
-            <input autocomplete="off" autofocus class="form-control" name="listName" placeholder="List Name" type="text">
+            <input autocomplete="off" autofocus class="form-control" name="listName" placeholder="List Name" type="text" id="listName" onkeyup="checkInput()" style="display:inline-block;">
+            <p id="errorInfo" style="display:inline-block; color:red; font-family: Arial; font-size: 70%;"> </p>
         </div>
+    <br>
 		<div class="form-group">
-            <textarea rows = "5" cols = "60" name="phrases" placeholder="Phrases separated by line" type="text"></textarea>
+            <textarea rows = "8" cols = "50" name="phrases" placeholder="Phrases separated by line" type="text" id="phrases" onkeyup="checkInput()"></textarea>
         </div>
-        <button class="btn btn-primary" type="submit">Save</button>
+        <button class="btn btn-primary" type="submit" id="submit" disabled>Save</button>
     </form>
+	
+	<script>
+	var existingLists = {{ fileList|tojson }};
+	function checkInput(){
+		if( document.querySelector('#listName').value === '' || document.querySelector('#phrases').value === '') {
+			document.querySelector('#submit').disabled = true;
+		} else if (existingLists.includes(document.querySelector('#listName').value.trim())){
+			document.getElementById("errorInfo").innerHTML = "List name already in use";
+			document.querySelector('#submit').disabled = true;
+		} else {
+			document.getElementById("errorInfo").innerHTML = "";
+			document.querySelector('#submit').disabled = false;
+		}
+	}
+	</script>
+
+{% endblock %}
