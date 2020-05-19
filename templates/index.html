@@ -5,27 +5,72 @@
 {% endblock %}
 
 {% block main %}    
-		<form action="/save" method="post">
-        <div class="form-group">
-            <input autocomplete="off" autofocus class="form-control" name="listName" placeholder="List Name" type="text" id="listName" onkeyup="checkInput()" style="display:inline-block;">
-            <p id="errorInfo" style="display:inline-block; color:red; font-family: Arial; font-size: 70%;"> </p>
-        </div>
-    <br>
-		<div class="form-group">
-            <textarea rows = "8" cols = "50" name="phrases" placeholder="Phrases separated by line" type="text" id="phrases" onkeyup="checkInput()"></textarea>
-        </div>
-        <button class="btn btn-primary" type="submit" id="submit" disabled>Save</button>
+  
+
+<div class="container">
+  <div class="box a" style="text-align: center;">
+    <h1 class="boxHeader">Upload</h1>
+    <form action="/save" method="post" style="margin: 5px">
+      <div class="form-group">
+        <input autocomplete="off" autofocus class="form-control" name="listName" placeholder="List Name" type="text" id="listName" onkeyup="checkInput()"><br>
+        <input autocomplete="off" autofocus class="form-control" name="creator" placeholder="Creator" type="text" id="creator" onkeyup="checkInput()"><br>
+        <input type="checkbox" id="listVisibility" name="listVisibility" value="visible" checked>
+        <label for="listVisibility" class="tooltip">Visible<span class="tooltiptext">If checked, players can view the phrases in the list before playing</span></label><br>
+      </div>
+      <div class="form-group">
+        <textarea wrap="off" rows="15" cols="50" name="phrases" placeholder="Phrases separated by line" type="text" id="phrases" onkeyup="checkInput()"></textarea>
+      </div>
+      <button class="btn btn-primary" type="submit" id="submit" disabled>Save</button>
+              <p id="errorInfo" style="color:red; font-family: Arial; font-size: 70%;"> </p>
     </form>
+  </div>
+
+
+  <div class="box b" >
+    <h1 class="boxHeader">Existing Lists</h1>
+    <ul>
+      {% for file in fileList %}
+      <li>{{ file }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="box c" >
+    <h1 class="boxHeader">Information</h1>
+    <p>
+      Enter a list in the box provided, with each string separated by hitting enter. Give it a name, add your own name, and hit submit! Next time you use the app, the list will be available to download and use.
+      <br><br>
+      Served from a Raspberry Pi webserver and running on Flask, this website functions as a companion to an android app version of Hangman built in Java. Further information can be found <a href="https://github.com/Aaron-Mackay/Hangman-Web-Flask">here</a> (website) and <a href="https://github.com/Aaron-Mackay/Hangman-Android-Java">here</a> (app)!
+    </p>
+  </div>
+</div>
+
 	
 	<script>
 	var existingLists = {{ fileList|tojson }};
+	var regex = RegExp('[^a-zA-Z 0-9\n]');
+
 	function checkInput(){
-		if( document.querySelector('#listName').value === '' || document.querySelector('#phrases').value === '') {
+		var phrases = document.querySelector("#phrases").value.split("\n");
+	  var count = 0;
+    var listName = document.querySelector('#listName').value;
+    var phrases = document.querySelector('#phrases').value
+	  for (i = 0; i < phrases.length; i++) {
+		if (phrases[i].trim() != "") {
+		  count++;
+		}
+	  }
+		if( listName === '' || phrases === '') {
 			document.querySelector('#submit').disabled = true;
-		} else if (existingLists.includes(document.querySelector('#listName').value.trim())){
+		} else if (existingLists.includes(document.querySelector('#listName').value.trim().toLowerCase())){
 			document.getElementById("errorInfo").innerHTML = "List name already in use";
 			document.querySelector('#submit').disabled = true;
-		} else {
+		} else if (count < 5) {
+    document.getElementById("errorInfo").innerHTML = "Please enter at least 5 words or phrases";
+    document.querySelector("#submit").disabled = true;
+  } else if (regex.test(listName) || regex.test(phrases)) {
+    document.getElementById("errorInfo").innerHTML = "Letters, numbers and spaces only";
+    document.querySelector("#submit").disabled = true;
+  } else {
 			document.getElementById("errorInfo").innerHTML = "";
 			document.querySelector('#submit').disabled = false;
 		}
