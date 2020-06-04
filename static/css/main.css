@@ -27,6 +27,19 @@ html, body {
   text-align: left
 }
 
+.scoreboard {
+  overflow:hidden;
+  height: auto;
+  max-height: 0px;
+  transition: max-height 2s;
+  visibility: hidden;
+}
+
+.scoreboard.opened {
+  max-height:1000px;
+  visibility: visible;
+}
+
 .form-control {
   margin: 5px 0 0 0
 }

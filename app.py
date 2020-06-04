@@ -1,16 +1,59 @@
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, send_file, abort
 import csv, json, traceback
+import sqlalchemy
+import time
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import inspect
 from glob import glob
-
+import traceback
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F0Q8z\n\xec]/'
+
+# =============== Database ===================
+uri = 'mysql+pymysql://myadmin:l42e3@localhost:2501/scoreboards'
+start = time.time()
+engine = create_engine(uri, pool_recycle=3600)
+
 
 @app.route('/')
 def hello_world():
     print("\n =============== Home ===================")
     fileList = getFileList()
     return render_template("index.html", fileList=fileList)
+
+
+@app.route('/background_process')
+def background_process():
+    try:
+        listArg = request.args.get('list', 0, type=str)
+
+        with engine.connect() as con:
+            rs = con.execute(f'SELECT user, MAX(score) as highscore FROM scoreboard WHERE list LIKE "{listArg}" GROUP BY 1 ORDER BY MAX(score) desc LIMIT 10')
+
+            jsonrtn = jsonify({'result': [dict(row) for row in rs]})
+            print(jsonrtn)
+            return jsonrtn
+
+    except Exception as e:
+        print(traceback.format_exc())
+        return str(e)
+
+
+@app.route('/api/scoreboarddb')
+def scoreboarddbfetch():
+    try:
+        with engine.connect() as con:
+            rs = con.execute('SELECT list, user, score, UNIX_TIMESTAMP(datetime) as unixDatetime  FROM scoreboard')
+            jsonrtn = jsonify({'result': [dict(row) for row in rs]})
+            print(jsonrtn)
+            return jsonrtn
+
+    except Exception as e:
+        print(traceback.format_exc())
+        return str(e)
 
 
 @app.route('/api/<phraseList>.json')
@@ -23,11 +66,30 @@ def csv_test(phraseList):
     except OSError:
         abort(404)
 
+
 @app.route('/api')
 def displayLists():
     print("\n =============== API Contents ===================")
     fileList = getFileList()
     return json.dumps(fileList)
+
+
+@app.route('/api/scoreupload', methods=['POST'])
+def scoreUpload():
+    print("\n =============== API Score Upload ===================")
+    list = request.form.get("list")
+    user = request.form.get("user")
+    score = request.form.get("score")
+    datetime = request.form.get("datetime")
+    print(list, user, score, datetime)
+
+    with engine.connect() as con:
+        rs = con.execute(f'SELECT list, user, score, datetime FROM scoreboard WHERE list LIKE "{list}" AND user LIKE "{user}" AND score = {score} AND datetime LIKE "{datetime}"')
+        if len(rs._saved_cursor._result.rows) == 0:
+            con.execute(f'INSERT INTO scoreboard (list, user, score, datetime) VALUES ("{list}", "{user}", {score}, "{datetime}")')
+            print("Added new score to database -", list, user, score, datetime)
+
+    return "Success"
 
 
 @app.route('/save', methods=['GET', 'POST'])
@@ -42,7 +104,7 @@ def save():
         phraseList = request.form.get("phrases").strip().split("\r\n")
         phraseList = list(dict.fromkeys(phraseList))  # remove duplicates
         hidden = False
-        owner = "test" #todo add owner field
+        owner = "test"  # todo add owner field
         dataDict = {
             "listName": listName,
             "owner": creator,
@@ -53,7 +115,7 @@ def save():
         print(list, listName)
 
         ## CSV save method
-        #with open(f"listFiles/{listName}.csv", 'w+', newline='') as listFile:
+        # with open(f"listFiles/{listName}.csv", 'w+', newline='') as listFile:
         #    wr = csv.writer(listFile)
         #    for i in list:
         #        wr.writerow([i])
@@ -74,11 +136,11 @@ def getFileList():
     filelist = glob(f'{jsonDir}/*.json')
     namedFileList = []
     for i in filelist:
-        string = i.replace(f"{jsonDir}", "")\
-            .replace("_", " ")\
-            .replace(".json", "")\
-            .replace(r'/', '')\
-            .replace('\\', '')\
+        string = i.replace(f"{jsonDir}", "") \
+            .replace("_", " ") \
+            .replace(".json", "") \
+            .replace(r'/', '') \
+            .replace('\\', '') \
             .lower().strip()
 
         namedFileList.append(string)

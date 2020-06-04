@@ -1,80 +1,154 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Hangman
+Hangman
 {% endblock %}
 
-{% block main %}    
-  
+{% block main %}
+
 
 <div class="container">
   <div class="box a" style="text-align: center;">
     <h1 class="boxHeader">Upload</h1>
     <form action="/save" method="post" style="margin: 5px">
       <div class="form-group">
-        <input autocomplete="off" autofocus class="form-control" name="listName" placeholder="List Name" type="text" id="listName" onkeyup="checkInput()"><br>
-        <input autocomplete="off" autofocus class="form-control" name="creator" placeholder="Creator" type="text" id="creator" onkeyup="checkInput()"><br>
+        <input autocomplete="off" autofocus class="form-control" name="listName" placeholder="List Name" type="text"
+          id="listName" onkeyup="checkInput()"><br>
+        <input autocomplete="off" autofocus class="form-control" name="creator" placeholder="Creator" type="text"
+          id="creator" onkeyup="checkInput()"><br>
         <input type="checkbox" id="listVisibility" name="listVisibility" value="visible" checked>
-        <label for="listVisibility" class="tooltip">Visible<span class="tooltiptext">If checked, players can view the phrases in the list before playing</span></label><br>
+        <label for="listVisibility" class="tooltip">Visible<span class="tooltiptext">If checked, players can view the
+            phrases in the list before playing</span></label><br>
       </div>
       <div class="form-group">
-        <textarea wrap="off" rows="15" cols="50" name="phrases" placeholder="Phrases separated by line" type="text" id="phrases" onkeyup="checkInput()"></textarea>
+        <textarea wrap="off" rows="15" cols="50" name="phrases" placeholder="Phrases separated by line" type="text"
+          id="phrases" onkeyup="checkInput()"></textarea>
       </div>
       <button class="btn btn-primary" type="submit" id="submit" disabled>Save</button>
-              <p id="errorInfo" style="color:red; font-family: Arial; font-size: 70%;"> </p>
+      <p id="errorInfo" style="color:red; font-family: Arial; font-size: 70%;"> </p>
     </form>
   </div>
 
 
-  <div class="box b" >
+  <div class="box b">
     <h1 class="boxHeader">Existing Lists</h1>
     <ul>
       {% for file in fileList %}
-      <li>{{ file }}</li>
+      <li>
+        {{ file }} <button name="{{ file + 'Scoreboard' }}" id="{{ file + 'Scoreboard' }}"
+          onClick='showScoreboard("{{ file }}")' style="float:inline-end;">Scoreboard</button>
+      </li>
       {% endfor %}
     </ul>
   </div>
-  <div class="box c" >
+  <div class="box c">
     <h1 class="boxHeader">Information</h1>
-    <p>
-      Enter a list in the box provided, with each string separated by hitting enter. Give it a name, add your own name, and hit submit! Next time you use the app, the list will be available to download and use.
-      <br><br>
-      Served from a Raspberry Pi webserver and running on Flask, this website functions as a companion to an android app version of Hangman built in Java. Further information can be found <a href="https://github.com/Aaron-Mackay/Hangman-Web-Flask">here</a> (website) and <a href="https://github.com/Aaron-Mackay/Hangman-Android-Java">here</a> (app)!
-    </p>
+    <div class="container">
+      <p>
+        Enter a list in the box provided, with each string separated by hitting enter. Give it a name, add your own
+        name, and hit submit! Next time you use the app, the list will be available to download and use.
+        <br><br>
+        Served from a Raspberry Pi webserver and running on Flask, this website functions as a companion to an android
+        app version of Hangman built in Java. Further information can be found <a
+          href="https://github.com/Aaron-Mackay/Hangman-Web-Flask">here</a> (website) and <a
+          href="https://github.com/Aaron-Mackay/Hangman-Android-Java">here</a> (app)!
+      </p>
+      <img src="{{ url_for('static', filename='img/framed_example.png') }}" alt=""
+        style="width: 50%; display: block; margin-left: auto; margin-right: auto ">
+    </div>
   </div>
+
+</div>
+<div class="box scoreboard" style="margin-top: 10px;">
+  <h1 class="boxHeader">Scoreboard</h1>
+  <table></table>
+  <p id="debug1"></p>
+  <p id="debug2"></p>
+  <p id="debug3"></p>
+  <p id="debug4"></p>
+  <p id="debug5"></p>
 </div>
 
-	
-	<script>
-	var existingLists = {{ fileList|tojson }};
-	var regex = RegExp('[^a-zA-Z 0-9\n]');
 
-	function checkInput(){
-		var phrases = document.querySelector("#phrases").value.split("\n");
-	  var count = 0;
+<script>
+  var existingLists = {{ fileList| tojson }};
+  var regex = RegExp('[^a-zA-Z 0-9\n]');
+
+  function checkInput() {
+    var phrases = document.querySelector("#phrases").value.split("\n");
+    var count = 0;
     var listName = document.querySelector('#listName').value;
     var phrases = document.querySelector('#phrases').value
-	  for (i = 0; i < phrases.length; i++) {
-		if (phrases[i].trim() != "") {
-		  count++;
-		}
-	  }
-		if( listName === '' || phrases === '') {
-			document.querySelector('#submit').disabled = true;
-		} else if (existingLists.includes(document.querySelector('#listName').value.trim().toLowerCase())){
-			document.getElementById("errorInfo").innerHTML = "List name already in use";
-			document.querySelector('#submit').disabled = true;
-		} else if (count < 5) {
-    document.getElementById("errorInfo").innerHTML = "Please enter at least 5 words or phrases";
-    document.querySelector("#submit").disabled = true;
-  } else if (regex.test(listName) || regex.test(phrases)) {
-    document.getElementById("errorInfo").innerHTML = "Letters, numbers and spaces only";
-    document.querySelector("#submit").disabled = true;
-  } else {
-			document.getElementById("errorInfo").innerHTML = "";
-			document.querySelector('#submit').disabled = false;
-		}
-	}
-	</script>
+    for (i = 0; i < phrases.length; i++) {
+      if (phrases[i].trim() != "") {
+        count++;
+      }
+    }
+    if (listName === '' || phrases === '') {
+      document.querySelector('#submit').disabled = true;
+    } else if (existingLists.includes(document.querySelector('#listName').value.trim().toLowerCase())) {
+      document.getElementById("errorInfo").innerHTML = "List name already in use";
+      document.querySelector('#submit').disabled = true;
+    } else if (count < 5) {
+      document.getElementById("errorInfo").innerHTML = "Please enter at least 5 words or phrases";
+      document.querySelector("#submit").disabled = true;
+    } else if (regex.test(listName) || regex.test(phrases)) {
+      document.getElementById("errorInfo").innerHTML = "Letters, numbers and spaces only";
+      document.querySelector("#submit").disabled = true;
+    } else {
+      document.getElementById("errorInfo").innerHTML = "";
+      document.querySelector('#submit').disabled = false;
+    }
+  }
 
+  function showScoreboard(list) {
+    document.querySelector('.scoreboard').classList.toggle('opened');
+    $(function () {
+      $.getJSON('/background_process', {
+        list: list,
+      }, function (data) {
+        let table = document.querySelector("table");
+        let header = ["Player", "Highscore"]
+
+        while(table.rows.length > 0) {
+            table.deleteRow(0);
+            }
+        if (data.result.length == 0) {
+          $('#debug1').text("No data");
+          $('#debug2').text("");
+          $('#debug3').text("");;
+          $('#debug4').text("");;
+        } else {
+          $('#debug1').text("");
+          generateTable(table, data.result);
+          generateTableHead(table, header);
+          
+        }
+      });
+      return false;
+    });
+  }
+
+  function generateTableHead(table, data) {
+  let thead = table.createTHead();
+  let row = thead.insertRow();
+  for (let key of data) {
+    let th = document.createElement("th");
+    let text = document.createTextNode(key);
+    th.appendChild(text);
+    row.appendChild(th);
+  }
+}
+
+function generateTable(table, data) {
+  for (let element of data) {
+    let row = table.insertRow();
+    for (key in element) {
+      let cell = row.insertCell();
+      let text = document.createTextNode(element[key]);
+      cell.appendChild(text);
+    }
+  }
+}
+</script>
 {% endblock %}
