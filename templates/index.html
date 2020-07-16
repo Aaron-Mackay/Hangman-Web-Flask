@@ -24,7 +24,8 @@ Hangman
         <textarea wrap="off" rows="15" cols="50" name="phrases" placeholder="Phrases separated by line" type="text"
           id="phrases" onkeyup="checkInput()"></textarea>
       </div>
-      <button class="btn btn-primary" type="submit" id="submit" disabled>Save</button>
+      <button class="btn btn-primary" type="submit" id="submit" onclick="gtag('event', 'SubmitList');"
+        disabled>Save</button>
       <p id="errorInfo" style="color:red; font-family: Arial; font-size: 70%;"> </p>
     </form>
   </div>
@@ -35,8 +36,14 @@ Hangman
     <ul>
       {% for file in fileList %}
       <li>
-        {{ file }} <button name="{{ file + 'Scoreboard' }}" id="{{ file + 'Scoreboard' }}"
-          onClick='showScoreboard("{{ file }}")' style="float:inline-end;">Scoreboard</button>
+        <div class = "bulletpointlist"> {{ file }} </div>
+        <div class="btn-group">
+          <button name="{{ file + 'Scoreboard' }}" id="{{ file + 'Scoreboard' }}"
+            onClick='showScoreboard("{{ file }}");'>Scoreboard</button>
+          <form action='/game' method='GET'>
+            <button name="list" id="{{ file + 'Play' }}" value="{{file}}">Play</button>
+          </form>
+        </div>
       </li>
       {% endfor %}
     </ul>
@@ -102,7 +109,8 @@ Hangman
   }
 
   function showScoreboard(list) {
-    document.querySelector('.scoreboard').classList.toggle('opened');
+    gtag('event', 'OpenScoreboard');
+    document.querySelector('.scoreboard').classList.add('opened');
     $(function () {
       $.getJSON('/background_process', {
         list: list,
@@ -110,9 +118,9 @@ Hangman
         let table = document.querySelector("table");
         let header = ["Player", "Highscore"]
 
-        while(table.rows.length > 0) {
-            table.deleteRow(0);
-            }
+        while (table.rows.length > 0) {
+          table.deleteRow(0);
+        }
         if (data.result.length == 0) {
           $('#debug1').text("No data");
           $('#debug2').text("");
@@ -122,7 +130,7 @@ Hangman
           $('#debug1').text("");
           generateTable(table, data.result);
           generateTableHead(table, header);
-          
+
         }
       });
       return false;
@@ -130,25 +138,25 @@ Hangman
   }
 
   function generateTableHead(table, data) {
-  let thead = table.createTHead();
-  let row = thead.insertRow();
-  for (let key of data) {
-    let th = document.createElement("th");
-    let text = document.createTextNode(key);
-    th.appendChild(text);
-    row.appendChild(th);
-  }
-}
-
-function generateTable(table, data) {
-  for (let element of data) {
-    let row = table.insertRow();
-    for (key in element) {
-      let cell = row.insertCell();
-      let text = document.createTextNode(element[key]);
-      cell.appendChild(text);
+    let thead = table.createTHead();
+    let row = thead.insertRow();
+    for (let key of data) {
+      let th = document.createElement("th");
+      let text = document.createTextNode(key);
+      th.appendChild(text);
+      row.appendChild(th);
     }
   }
-}
+
+  function generateTable(table, data) {
+    for (let element of data) {
+      let row = table.insertRow();
+      for (key in element) {
+        let cell = row.insertCell();
+        let text = document.createTextNode(element[key]);
+        cell.appendChild(text);
+      }
+    }
+  }
 </script>
 {% endblock %}

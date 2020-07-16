@@ -8,6 +8,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 from sqlalchemy import inspect
 from glob import glob
 import traceback
+import random
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F0Q8z\n\xec]/'
@@ -23,6 +24,24 @@ def hello_world():
     print("\n =============== Home ===================")
     fileList = getFileList()
     return render_template("index.html", fileList=fileList)
+
+
+@app.route('/game')
+def play_game():
+    print("\n =============== Game ===================")
+    try:
+        phraseList = request.args['list'].replace(" ","_").lower();
+        print(f"listFiles/{phraseList}.json")
+        with open(f"listFiles/{phraseList}.json") as listFile:
+            loadedList = json.load(listFile)
+
+        listWords = loadedList["list"]
+        print("Loading list:", loadedList["list"])
+
+        return render_template("game.html", phraseList=phraseList, listWords=listWords)
+    except Exception as e:
+        print(traceback.format_exc())
+        return str(e)
 
 
 @app.route('/background_process')
@@ -96,7 +115,7 @@ def scoreUpload():
 def save():
     if request.method == "POST":
         print("\n =============== Saving Input ===================")
-        listName = request.form.get("listName").replace(" ", "_").lower()
+        listName = request.form.get("listName").replace(" ", "_").lower().strip()
         creator = request.form.get("creator").replace(" ", "_").lower()
         test = request.form.get('listVisibility')
         hidden = request.form.get('listVisibility') != "visible"

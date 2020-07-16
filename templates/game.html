@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Hangman - Gamepage
+{% endblock %}
+
+{% block body_attrs %} onload="playGame()" {% endblock %}
+{% block main %}
+
+
+<div class="container">
+  <div class="box a" style="text-align: center;">
+    <h1 class="boxHeader">Hangman - {{ phraseList | replace('_',' ')  | title}}</h1>
+    <ul>
+      {% for word in listWords %}
+      <li>
+        {{ word }} 
+      </li>
+      {% endfor %}
+    </ul>
+    <img src="static/img/stage1.jpg" alt="" id="mainimage"
+    style="width: 10%; display: block; margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; ">
+    <h3 id="hiddenword"></h3>
+    <div class="keyboard">
+      <button onclick="input(this);">Q</button>
+      <button onclick="input(this);">W</button>
+      <button onclick="input(this);">E</button>
+      <button onclick="input(this);">R</button>
+      <button onclick="input(this);">T</button>
+      <button onclick="input(this);">Y</button>
+      <button onclick="input(this);">U</button>
+      <button onclick="input(this);">I</button>
+      <button onclick="input(this);">O</button>
+      <button onclick="input(this);">P</button>
+    </div>
+    <div class="keyboard">
+      <button onclick="input(this);">A</button>
+      <button onclick="input(this);">S</button>
+      <button onclick="input(this);">D</button>
+      <button onclick="input(this);">F</button>
+      <button onclick="input(this);">G</button>
+      <button onclick="input(this);">H</button>
+      <button onclick="input(this);">J</button>
+      <button onclick="input(this);">K</button>
+      <button onclick="input(this);">L</button>
+    </div>
+    <div class="keyboard">
+      <button onclick="input(this);">Z</button>
+      <button onclick="input(this);">X</button>
+      <button onclick="input(this);">C</button>
+      <button onclick="input(this);">V</button>
+      <button onclick="input(this);">B</button>
+      <button onclick="input(this);">N</button>
+      <button onclick="input(this);">M</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var listWords = {{ listWords | tojson }};
+  var phraseList = "{{ phraseList }}";
+  var playedWords = [];
+  var score = 0;
+  var guesses = 1;
+  var word;
+  var hiddenWord;
+  console.log("Starting guesses on: " + guesses);
+
+  function advanceStage() {
+    console.log("Guesses now on: " + guesses);
+    guesses++;
+    if (guesses > 11) {
+      //todo reset game, show lose sign
+      guesses = 0;
+      return;
+    }
+    console.log("Guesses now on: " + guesses);
+    // Update image in DOM
+    document.getElementById("mainimage").src = "static/img/stage" + guesses + ".jpg";
+    console.log("Loading image: " + "static/img/stage" + guesses + ".jpg");
+  }
+
+  function playGame() {
+    // Get a random word from the provided list
+    word = getUnusedWord();
+    hiddenWord = word.replace(/[A-Za-z]/g, '_');
+    console.log(word + " - " + hiddenWord);
+
+    console.log(listWords);
+
+    document.getElementById("hiddenword").innerHTML = hiddenWord;
+
+    guesses = 1;
+  }
+
+  function getUnusedWord() {
+    // Create array of unused words to pick from
+    var unusedWords = [];
+    for (var x of listWords) {
+      if (!playedWords.includes(x)) {
+        unusedWords.push(x);
+      }
+    }
+
+    if (unusedWords.length == 0) {
+      return "No more words";
+    }
+    var randomNum = getRandomInt(0, unusedWords.length - 1);
+    var word = unusedWords[randomNum];
+    playedWords.push(word);
+
+    return word;
+  }
+
+  function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function input(e) {
+    let guessedLetter = e.textContent;
+
+    e.disabled = true;
+    let lowercaseWord = word.toLowerCase();
+    if(lowercaseWord.includes(guessedLetter.toLowerCase())) {
+      let newHiddenWordArr = [];
+      for(let i = 0; i < word.length; i++) {
+        if(lowercaseWord[i] === guessedLetter.toLowerCase()) {
+          newHiddenWordArr.push(word[i]);
+        } else {
+          newHiddenWordArr.push(hiddenWord[i]);
+        }
+      }
+      console.log(newHiddenWordArr);
+      hiddenWord = newHiddenWordArr.join("");
+      document.getElementById("hiddenword").innerHTML = hiddenWord;
+
+    } else {
+      advanceStage();
+    }
+  }
+</script>
+
+{% endblock %}
