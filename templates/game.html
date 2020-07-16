@@ -20,38 +20,38 @@ Hangman - Gamepage
     </ul>
     <img src="static/img/stage1.jpg" alt="" id="mainimage"
     style="width: 10%; display: block; margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; ">
-    <h3 id="hiddenword"></h3>
+    <h2 id="hiddenword"></h2>
     <div class="keyboard">
-      <button onclick="input(this);">Q</button>
-      <button onclick="input(this);">W</button>
-      <button onclick="input(this);">E</button>
-      <button onclick="input(this);">R</button>
-      <button onclick="input(this);">T</button>
-      <button onclick="input(this);">Y</button>
-      <button onclick="input(this);">U</button>
-      <button onclick="input(this);">I</button>
-      <button onclick="input(this);">O</button>
-      <button onclick="input(this);">P</button>
+      <button id="q" onclick="input(this);">Q</button>
+      <button id="w" onclick="input(this);">W</button>
+      <button id="e" onclick="input(this);">E</button>
+      <button id="r" onclick="input(this);">R</button>
+      <button id="t" onclick="input(this);">T</button>
+      <button id="y" onclick="input(this);">Y</button>
+      <button id="u" onclick="input(this);">U</button>
+      <button id="i" onclick="input(this);">I</button>
+      <button id="o" onclick="input(this);">O</button>
+      <button id="p" onclick="input(this);">P</button>
     </div>
     <div class="keyboard">
-      <button onclick="input(this);">A</button>
-      <button onclick="input(this);">S</button>
-      <button onclick="input(this);">D</button>
-      <button onclick="input(this);">F</button>
-      <button onclick="input(this);">G</button>
-      <button onclick="input(this);">H</button>
-      <button onclick="input(this);">J</button>
-      <button onclick="input(this);">K</button>
-      <button onclick="input(this);">L</button>
+      <button id="a" onclick="input(this);">A</button>
+      <button id="s" onclick="input(this);">S</button>
+      <button id="d" onclick="input(this);">D</button>
+      <button id="f" onclick="input(this);">F</button>
+      <button id="g" onclick="input(this);">G</button>
+      <button id="h" onclick="input(this);">H</button>
+      <button id="j" onclick="input(this);">J</button>
+      <button id="k" onclick="input(this);">K</button>
+      <button id="l" onclick="input(this);">L</button>
     </div>
     <div class="keyboard">
-      <button onclick="input(this);">Z</button>
-      <button onclick="input(this);">X</button>
-      <button onclick="input(this);">C</button>
-      <button onclick="input(this);">V</button>
-      <button onclick="input(this);">B</button>
-      <button onclick="input(this);">N</button>
-      <button onclick="input(this);">M</button>
+      <button id="z" onclick="input(this);">Z</button>
+      <button id="x" onclick="input(this);">X</button>
+      <button id="c" onclick="input(this);">C</button>
+      <button id="v" onclick="input(this);">V</button>
+      <button id="b" onclick="input(this);">B</button>
+      <button id="n" onclick="input(this);">N</button>
+      <button id="m" onclick="input(this);">M</button>
     </div>
   </div>
 </div>
@@ -61,17 +61,19 @@ Hangman - Gamepage
   var phraseList = "{{ phraseList }}";
   var playedWords = [];
   var score = 0;
+  var highscore = 0;
   var guesses = 1;
   var word;
   var hiddenWord;
   console.log("Starting guesses on: " + guesses);
 
   function advanceStage() {
+    
     console.log("Guesses now on: " + guesses);
     guesses++;
     if (guesses > 11) {
       //todo reset game, show lose sign
-      guesses = 0;
+      lose();
       return;
     }
     console.log("Guesses now on: " + guesses);
@@ -80,7 +82,27 @@ Hangman - Gamepage
     console.log("Loading image: " + "static/img/stage" + guesses + ".jpg");
   }
 
+  function lose() {
+    console.log("You lose on a score of: " + score);
+    score = 0;
+    guesses = 1;
+    playGame();
+  }
+
+  function win() {
+    score++;
+    highscore = score > highscore ? score : highscore;
+    console.log("You win, your score is now " + score + " and your highscore is " + highscore);
+    guesses = 1;
+    playGame();
+  }
+
   function playGame() {
+    var keyboard = document.getElementsByClassName("keyboard");
+
+    [...keyboard].forEach(line => [...line.getElementsByTagName("button")].forEach(button => button.removeAttribute("disabled")));
+
+
     // Get a random word from the provided list
     word = getUnusedWord();
     hiddenWord = word.replace(/[A-Za-z]/g, '_');
@@ -119,7 +141,7 @@ Hangman - Gamepage
   }
 
   function input(e) {
-    let guessedLetter = e.textContent;
+    let guessedLetter = e.textContent || e;
 
     e.disabled = true;
     let lowercaseWord = word.toLowerCase();
@@ -132,14 +154,28 @@ Hangman - Gamepage
           newHiddenWordArr.push(hiddenWord[i]);
         }
       }
-      console.log(newHiddenWordArr);
+
       hiddenWord = newHiddenWordArr.join("");
       document.getElementById("hiddenword").innerHTML = hiddenWord;
+
+      if (hiddenWord === word) {
+        win();
+        return;
+      }
 
     } else {
       advanceStage();
     }
   }
+
+  document.addEventListener('keydown', function(event) {
+
+    if (/[A-Za-z]/.test(event.key) && event.key.length === 1) {
+      document.getElementById(event.key).disabled = true;
+      input(event.key);
+    }
+    
+});
 </script>
 
 {% endblock %}
