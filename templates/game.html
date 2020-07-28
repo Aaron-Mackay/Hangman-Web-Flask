@@ -1,26 +1,20 @@
-{% extends "layout.html" %}
-
-{% block title %}
-Hangman - Gamepage
-{% endblock %}
-
-{% block body_attrs %} onload="playGame()" {% endblock %}
-{% block main %}
-
+{% extends "layout.html" %} {% block title %} Hangman - Gamepage {% endblock %}
+{% block body_attrs %} onload="playGame()" {% endblock %} {% block main %}
 
 <div class="container">
   <div class="box a" style="text-align: center;">
-    <h1 class="boxHeader">Hangman - {{ phraseList | replace('_',' ')  | title}}</h1>
+    <h1 class="boxHeader">
+      Hangman - {{ phraseList | replace('_',' ') | title}}
+    </h1>
     <ul>
       {% for word in listWords %}
       <li>
-        {{ word }} 
+        {{ word }}
       </li>
       {% endfor %}
     </ul>
-    <img src="static/img/stage1.jpg" alt="" id="mainimage"
-    style="width: 10%; display: block; margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; ">
-    <h2 id="hiddenword"></h2>
+    <img class="mainImage" src="static/img/stage1.jpg" alt="" id="mainimage" />
+    <h2 class="hiddenword" id="hiddenword"></h2>
     <div class="keyboard">
       <button id="q" onclick="input(this);">Q</button>
       <button id="w" onclick="input(this);">W</button>
@@ -53,129 +47,172 @@ Hangman - Gamepage
       <button id="n" onclick="input(this);">N</button>
       <button id="m" onclick="input(this);">M</button>
     </div>
+    <h1 style="float: left;">Score:&NonBreakingSpace;</h1>
+    <h1 id="currentScore" style="float: left;">0</h1>
+    <h1 id="currentHighscore" style="float: right;">0</h1>
+    <h1 style="float: right;">Highscore:&NonBreakingSpace;</h1>
   </div>
 </div>
 
 <script>
-  var listWords = {{ listWords | tojson }};
-  var phraseList = "{{ phraseList }}";
-  var playedWords = [];
-  var score = 0;
-  var highscore = 0;
-  var guesses = 1;
-  var word;
-  var hiddenWord;
-  console.log("Starting guesses on: " + guesses);
+    var listWords = {{ listWords | tojson }};
+    var phraseList = "{{ phraseList }}";
+    var playedWords = [];
+    var score = 0;
+    var highscore = 0;
+    var guesses = 1;
+    var word;
+    var hiddenWord;
+    //todo add login
+    var user = "webUser";
+    console.log("Starting guesses on: " + guesses);
 
-  function advanceStage() {
-    
-    console.log("Guesses now on: " + guesses);
-    guesses++;
-    if (guesses > 11) {
-      //todo reset game, show lose sign
-      lose();
-      return;
-    }
-    console.log("Guesses now on: " + guesses);
-    // Update image in DOM
-    document.getElementById("mainimage").src = "static/img/stage" + guesses + ".jpg";
-    console.log("Loading image: " + "static/img/stage" + guesses + ".jpg");
-  }
+    function advanceStage() {
 
-  function lose() {
-    console.log("You lose on a score of: " + score);
-    score = 0;
-    guesses = 1;
-    playGame();
-  }
-
-  function win() {
-    score++;
-    highscore = score > highscore ? score : highscore;
-    console.log("You win, your score is now " + score + " and your highscore is " + highscore);
-    guesses = 1;
-    playGame();
-  }
-
-  function playGame() {
-    var keyboard = document.getElementsByClassName("keyboard");
-
-    [...keyboard].forEach(line => [...line.getElementsByTagName("button")].forEach(button => button.removeAttribute("disabled")));
-
-
-    // Get a random word from the provided list
-    word = getUnusedWord();
-    hiddenWord = word.replace(/[A-Za-z]/g, '_');
-    console.log(word + " - " + hiddenWord);
-
-    console.log(listWords);
-
-    document.getElementById("hiddenword").innerHTML = hiddenWord;
-
-    guesses = 1;
-  }
-
-  function getUnusedWord() {
-    // Create array of unused words to pick from
-    var unusedWords = [];
-    for (var x of listWords) {
-      if (!playedWords.includes(x)) {
-        unusedWords.push(x);
+      console.log("Guesses now on: " + guesses);
+      guesses++;
+      if (guesses > 11) {
+        //todo reset game, show lose sign
+        lose();
+        return;
       }
+      console.log("Guesses now on: " + guesses);
+      // Update image in DOM
+      document.getElementById("mainimage").src = "static/img/stage" + guesses + ".jpg";
+      console.log("Loading image: " + "static/img/stage" + guesses + ".jpg");
     }
 
-    if (unusedWords.length == 0) {
-      return "No more words";
+    function lose() {
+      console.log("You lose on a score of: " + score);
+      score = 0;
+      guesses = 1;
+      document.getElementById("currentScore").innerHTML = score;
+      document.getElementById("currentHighscore").innerHTML = highscore;
+      playGame();
     }
-    var randomNum = getRandomInt(0, unusedWords.length - 1);
-    var word = unusedWords[randomNum];
-    playedWords.push(word);
 
-    return word;
-  }
+    function win() {
+      score++;
+      if (score > highscore) {
+        highscore = score;
+        scoreUpload(phraseList, user, highscore, new Date());
+      }
+      console.log("You win, your score is now " + score + " and your highscore is " + highscore);
+      guesses = 1;
+      document.getElementById("currentScore").innerHTML = score;
+      document.getElementById("currentHighscore").innerHTML = highscore;
+      playGame();
+    }
 
-  function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+    function playGame() {
+      var keyboard = document.getElementsByClassName("keyboard");
 
-  function input(e) {
-    let guessedLetter = e.textContent || e;
+      [...keyboard].forEach(line => [...line.getElementsByTagName("button")].forEach(button => button.removeAttribute("disabled")));
 
-    e.disabled = true;
-    let lowercaseWord = word.toLowerCase();
-    if(lowercaseWord.includes(guessedLetter.toLowerCase())) {
-      let newHiddenWordArr = [];
-      for(let i = 0; i < word.length; i++) {
-        if(lowercaseWord[i] === guessedLetter.toLowerCase()) {
-          newHiddenWordArr.push(word[i]);
-        } else {
-          newHiddenWordArr.push(hiddenWord[i]);
+      document.getElementById("mainimage").src = "static/img/stage" + guesses + ".jpg";
+
+      // Get a random word from the provided list
+      word = getUnusedWord();
+      hiddenWord = word.replace(/[A-Za-z]/g, '_');
+      console.log(word + " - " + hiddenWord);
+
+      console.log(listWords);
+
+      document.getElementById("hiddenword").innerHTML = hiddenWord;
+
+      guesses = 1;
+    }
+
+    function getUnusedWord() {
+      // Create array of unused words to pick from
+      var unusedWords = [];
+      for (var x of listWords) {
+        if (!playedWords.includes(x)) {
+          unusedWords.push(x);
         }
       }
 
-      hiddenWord = newHiddenWordArr.join("");
-      document.getElementById("hiddenword").innerHTML = hiddenWord;
+      if (unusedWords.length == 0) {
+        return "No more words";
+      }
+      var randomNum = getRandomInt(0, unusedWords.length - 1);
+      var word = unusedWords[randomNum];
+      playedWords.push(word);
 
-      if (hiddenWord === word) {
-        win();
-        return;
+      return word;
+    }
+
+    function getRandomInt(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function input(e) {
+      let guessedLetter = e.textContent || e;
+
+      e.disabled = true;
+      let lowercaseWord = word.toLowerCase();
+      if(lowercaseWord.includes(guessedLetter.toLowerCase())) {
+        let newHiddenWordArr = [];
+        for(let i = 0; i < word.length; i++) {
+          if(lowercaseWord[i] === guessedLetter.toLowerCase()) {
+            newHiddenWordArr.push(word[i]);
+          } else {
+            newHiddenWordArr.push(hiddenWord[i]);
+          }
+        }
+
+        hiddenWord = newHiddenWordArr.join("");
+        document.getElementById("hiddenword").innerHTML = hiddenWord;
+
+        if (hiddenWord === word) {
+          win();
+          return;
+        }
+
+      } else {
+        advanceStage();
+      }
+    }
+
+    function scoreUpload(list, user, highscore, autoDatetime) {
+      const URL = "http://185.108.171.164:2500/api/scoreupload";
+      const datetime = `${autoDatetime.getFullYear()}-${autoDatetime.getMonth() + 1}-${autoDatetime.getDate()} ${autoDatetime.getHours()}:${autoDatetime.getMinutes()}:${autoDatetime.getSeconds()}`
+
+      const data = `list=${list}&user=${user}&score=${highscore}&datetime=${datetime}`
+      /*= {
+        "list":list,
+        "user":user,
+        "score":highscore,
+        "datetime":datetime
+      }*/
+      console.log(data);
+
+      fetch(URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: data,
+      })
+      .then(response => response.text())
+      .then(data => {
+        console.log('Success:', data.slice(0,10));
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    }
+
+    document.addEventListener('keydown', function(event) {
+
+      if (/[A-Za-z]/.test(event.key) && event.key.length === 1) {
+        document.getElementById(event.key).disabled = true;
+        input(event.key);
       }
 
-    } else {
-      advanceStage();
-    }
-  }
-
-  document.addEventListener('keydown', function(event) {
-
-    if (/[A-Za-z]/.test(event.key) && event.key.length === 1) {
-      document.getElementById(event.key).disabled = true;
-      input(event.key);
-    }
-    
-});
+  });
 </script>
 
 {% endblock %}

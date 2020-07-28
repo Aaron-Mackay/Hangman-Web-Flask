@@ -1,47 +1,91 @@
-{% extends "layout.html" %}
-
-{% block title %}
-Hangman
-{% endblock %}
-
-{% block main %}
-
+{% extends "layout.html" %} {% block title %} Hangman {% endblock %} {% block
+main %}
 
 <div class="container">
   <div class="box a" style="text-align: center;">
     <h1 class="boxHeader">Upload</h1>
-    <form action="/save" method="post" style="margin: 5px">
+    <form action="/save" method="post" style="margin: 5px;">
       <div class="form-group">
-        <input autocomplete="off" autofocus class="form-control" name="listName" placeholder="List Name" type="text"
-          id="listName" onkeyup="checkInput()"><br>
-        <input autocomplete="off" autofocus class="form-control" name="creator" placeholder="Creator" type="text"
-          id="creator" onkeyup="checkInput()"><br>
-        <input type="checkbox" id="listVisibility" name="listVisibility" value="visible" checked>
-        <label for="listVisibility" class="tooltip">Visible<span class="tooltiptext">If checked, players can view the
-            phrases in the list before playing</span></label><br>
+        <input
+          autocomplete="off"
+          autofocus
+          class="form-control"
+          name="listName"
+          placeholder="List Name"
+          type="text"
+          id="listName"
+          onkeyup="checkInput()"
+        /><br />
+        <input
+          autocomplete="off"
+          autofocus
+          class="form-control"
+          name="creator"
+          placeholder="Creator"
+          type="text"
+          id="creator"
+          onkeyup="checkInput()"
+        /><br />
+        <input
+          type="checkbox"
+          id="listVisibility"
+          name="listVisibility"
+          value="visible"
+          checked
+        />
+        <label for="listVisibility" class="tooltip"
+          >Visible<span class="tooltiptext"
+            >If checked, players can view the phrases in the list before
+            playing</span
+          ></label
+        ><br />
       </div>
       <div class="form-group">
-        <textarea wrap="off" rows="15" cols="50" name="phrases" placeholder="Phrases separated by line" type="text"
-          id="phrases" onkeyup="checkInput()"></textarea>
+        <textarea
+          wrap="off"
+          rows="15"
+          cols="50"
+          name="phrases"
+          placeholder="Phrases separated by line"
+          type="text"
+          id="phrases"
+          onkeyup="checkInput()"
+        ></textarea>
       </div>
-      <button class="btn btn-primary" type="submit" id="submit" onclick="gtag('event', 'SubmitList');"
-        disabled>Save</button>
-      <p id="errorInfo" style="color:red; font-family: Arial; font-size: 70%;"> </p>
+      <button
+        class="btn btn-primary"
+        type="submit"
+        id="submit"
+        onclick="gtag('event', 'SubmitList');"
+        disabled
+      >
+        Save
+      </button>
+      <p
+        id="errorInfo"
+        style="color: red; font-family: Arial; font-size: 70%;"
+      ></p>
     </form>
   </div>
-
 
   <div class="box b">
     <h1 class="boxHeader">Existing Lists</h1>
     <ul>
       {% for file in fileList %}
       <li>
-        <div class = "bulletpointlist"> {{ file }} </div>
+        <div class="bulletpointlist">{{ file }}</div>
         <div class="btn-group">
-          <button name="{{ file + 'Scoreboard' }}" id="{{ file + 'Scoreboard' }}"
-            onClick='showScoreboard("{{ file }}");'>Scoreboard</button>
-          <form action='/game' method='GET'>
-            <button name="list" id="{{ file + 'Play' }}" value="{{file}}">Play</button>
+          <button
+            name="{{ file + 'Scoreboard' }}"
+            id="{{ file + 'Scoreboard' }}"
+            onClick='showScoreboard("{{ file }}");'
+          >
+            Scoreboard
+          </button>
+          <form action="/game" method="GET">
+            <button name="list" id="{{ file + 'Play' }}" value="{{file}}">
+              Play
+            </button>
           </form>
         </div>
       </li>
@@ -52,19 +96,30 @@ Hangman
     <h1 class="boxHeader">Information</h1>
     <div class="container">
       <p>
-        Enter a list in the box provided, with each string separated by hitting enter. Give it a name, add your own
-        name, and hit submit! Next time you use the app, the list will be available to download and use.
-        <br><br>
-        Served from a Raspberry Pi webserver and running on Flask, this website functions as a companion to an android
-        app version of Hangman built in Java. Further information can be found <a
-          href="https://github.com/Aaron-Mackay/Hangman-Web-Flask">here</a> (website) and <a
-          href="https://github.com/Aaron-Mackay/Hangman-Android-Java">here</a> (app)!
+        Enter a list in the box provided, with each string separated by hitting
+        enter. Give it a name, add your own name, and hit submit! Next time you
+        use the app, the list will be available to download and use.
+        <br /><br />
+        Served from a Raspberry Pi webserver and running on Flask, this website
+        functions as a companion to an android app version of Hangman built in
+        Java. Further information can be found
+        <a href="https://github.com/Aaron-Mackay/Hangman-Web-Flask">here</a>
+        (website) and
+        <a href="https://github.com/Aaron-Mackay/Hangman-Android-Java">here</a>
+        (app)!
       </p>
-      <img src="{{ url_for('static', filename='img/framed_example.png') }}" alt=""
-        style="width: 50%; display: block; margin-left: auto; margin-right: auto ">
+      <img
+        src="{{ url_for('static', filename='img/framed_example.png') }}"
+        alt=""
+        style="
+          width: 50%;
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+        "
+      />
     </div>
   </div>
-
 </div>
 <div class="box scoreboard" style="margin-top: 10px;">
   <h1 class="boxHeader">Scoreboard</h1>
@@ -75,8 +130,6 @@ Hangman
   <p id="debug4"></p>
   <p id="debug5"></p>
 </div>
-
-
 <script>
   var existingLists = {{ fileList| tojson }};
   var regex = RegExp('[^a-zA-Z 0-9\n]');
