@@ -1,4 +1,4 @@
-from flask import Flask, flash, jsonify, redirect, render_template, request, session, send_file, abort
+from flask import Flask, flash, jsonify, redirect, render_template, request, session, send_file, abort, make_response
 import csv, json, traceback
 import sqlalchemy
 import time
@@ -56,6 +56,29 @@ def background_process():
             print(jsonrtn)
             return jsonrtn
 
+    except Exception as e:
+        print(traceback.format_exc())
+        return str(e)
+
+@app.route('/setcookie', methods = ['POST', 'GET'])
+def setcookie():
+    if request.method == 'POST':
+        user = request.form['username']
+        print("Storing cookie for user: " + user)
+
+        resp = make_response(redirect('/'))
+        resp.set_cookie("user", user)
+
+        return resp
+
+@app.route('/getcookie')
+def getcookie():
+    try:
+        if "user" in request.cookies:
+            user = request.cookies.get("user")
+            return user
+        else:
+            return "webUser"
     except Exception as e:
         print(traceback.format_exc())
         return str(e)

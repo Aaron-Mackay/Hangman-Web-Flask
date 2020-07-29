@@ -1,7 +1,15 @@
-{% extends "layout.html" %} {% block title %} Hangman {% endblock %} {% block
-main %}
-
-<div class="container">
+{% extends "layout.html" %}
+{% block title %} Hangman {% endblock %} 
+{% block body_attrs %} onload="getUsername()"{% endblock %}
+{% block main %}
+<form action = "/setcookie" method = "POST">
+         <p><h3>Enter user</h3></p>
+         <p><input type = 'text' name = 'username'/></p>
+         <p><input type = 'submit' value = 'Login'/></p>
+      </form>
+<p id="usernameDisplay">unchanged</p>
+<button onclick="getUsername()">Click me</button>
+<div class="container" id="container">
   <div class="box a" style="text-align: center;">
     <h1 class="boxHeader">Upload</h1>
     <form action="/save" method="post" style="margin: 5px;">
@@ -211,5 +219,12 @@ main %}
       }
     }
   }
+
+  function getUsername() {
+    $.get('/getcookie', {}, function (username) {
+        console.log("username = ",username);
+        document.getElementById("usernameDisplay").innerHTML = username;
+      });  
+    }
 </script>
 {% endblock %}
