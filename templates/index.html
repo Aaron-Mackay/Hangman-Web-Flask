@@ -1,15 +1,17 @@
-{% extends "layout.html" %}
-{% block title %} Hangman {% endblock %} 
-{% block body_attrs %} onload="getUsername()"{% endblock %}
-{% block main %}
-<form action = "/setcookie" method = "POST">
-         <p><h3>Enter user</h3></p>
-         <p><input type = 'text' name = 'username'/></p>
-         <p><input type = 'submit' value = 'Login'/></p>
-      </form>
-<p id="usernameDisplay">unchanged</p>
-<button onclick="getUsername()">Click me</button>
+{% extends "layout.html" %} {% block title %} Hangman {% endblock %} {% block
+body_attrs %} onload="getUsername()"{% endblock %} {% block main %}
 <div class="container" id="container">
+  <div class="box x">
+    <form action="/setcookie" method="POST" class="form-inline" id="login">
+      <label for="username">Username: </label>
+      <input type="text" name="username" />
+      <input type="submit" value="Login" />
+    </form>
+    <div class="form-inline" id="userLoggedIn" style="display: none;">
+      <label id="usernameDisplay">Username: </label>
+      <button id="logout">Logout</button>
+    </div>
+  </div>
   <div class="box a" style="text-align: center;">
     <h1 class="boxHeader">Upload</h1>
     <form action="/save" method="post" style="margin: 5px;">
@@ -198,6 +200,7 @@
     });
   }
 
+
   function generateTableHead(table, data) {
     let thead = table.createTHead();
     let row = thead.insertRow();
@@ -224,7 +227,23 @@
     $.get('/getcookie', {}, function (username) {
         console.log("username = ",username);
         document.getElementById("usernameDisplay").innerHTML = username;
-      });  
+        if (username != "" && username != "webUser") {
+          document.getElementById("login").style.display = "none";
+          document.getElementById("userLoggedIn").style.display = "";
+        }
+      });
     }
+
+
+  document.getElementById("logout").addEventListener("click", function(e) {
+      console.log("test");
+      username = document.getElementById("usernameDisplay").innerHTML;
+      console.log("logout clicked for ", username);
+      $.get('/deletecookie', {"username":username}, function (resp) {
+              console.log(resp.slice(0,10));
+          });
+      document.getElementById("login").style.display = "";
+      document.getElementById("userLoggedIn").style.display = "none";
+        });
 </script>
 {% endblock %}

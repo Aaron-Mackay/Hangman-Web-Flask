@@ -83,6 +83,17 @@ def getcookie():
         print(traceback.format_exc())
         return str(e)
 
+@app.route('/deletecookie', methods = ['GET'])
+def deletecookie():
+    if request.method == 'GET':
+        print("test")
+        user = request.args['username']
+        print("Deleting cookie for user: " + user)
+
+        resp = make_response(redirect('/'))
+        resp.delete_cookie("user")
+
+        return resp
 
 @app.route('/api/scoreboarddb')
 def scoreboarddbfetch():
