@@ -17,13 +17,14 @@
     <h1 class="boxHeader">
       Hangman - {{ phraseList | replace('_',' ') | title}}
     </h1>
-    <ul>
+    <!-- for testing visibility of phrases
+      <ul>
       {% for word in listWords %}
       <li>
         {{ word }}
       </li>
       {% endfor %}
-    </ul>
+    </ul> -->
     <img class="mainImage" src="static/img/stage1.jpg" alt="" id="mainimage" />
     <h2 class="hiddenword" id="hiddenword"></h2>
     <div class="keyboard">
@@ -231,8 +232,8 @@
           document.getElementById("login").style.display = "none";
           document.getElementById("userLoggedIn").style.display = "";
         }
+        return username;
       });
-      return username;
     }
 
 
